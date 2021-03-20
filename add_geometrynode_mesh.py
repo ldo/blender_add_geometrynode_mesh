@@ -6,15 +6,17 @@
 
 import sys
 import math
+import enum
 import bpy
 from mathutils import \
-    Matrix
+    Matrix, \
+    Vector
 
 bl_info = \
     {
         "name" : "Geometry-Node Mesh",
         "author" : "Lawrence D'Oliveiro <ldo@geek-central.gen.nz>",
-        "version" : (0, 1, 0),
+        "version" : (0, 2, 0),
         "blender" : (2, 93, 0),
         "location" : "Add > Mesh",
         "description" :
@@ -94,15 +96,65 @@ def deselect_all(node_graph) :
 # Mainline
 #-
 
+class NODE_MESH(enum.Enum) :
+    CIRCLE = ("Circle", "GeometryNodeMeshCircle")
+    CONE = ("Cone", "GeometryNodeMeshCone")
+    CUBE = ("Cube", "GeometryNodeMeshCube")
+    CYLINDER = ("Cylinder", "GeometryNodeMeshCylinder")
+    ICO_SPHERE = ("Ico Sphere", "GeometryNodeMeshIcoSphere")
+    LINE = ("Line", "GeometryNodeMeshLine")
+    PLANE = ("Plane", "GeometryNodeMeshPlane")
+    UV_SPHERE = ("UV Sphere", "GeometryNodeMeshUVSphere")
+
+    @property
+    def label(self) :
+        return \
+            self.value[0]
+    #end label
+
+    @property
+    def typename(self) :
+        return \
+            self.value[1]
+    #end typename
+
+#end NODE_MESH
+NODE_MESH_DEFAULT = NODE_MESH.CUBE
+
 class AddGeometryNodeMesh(bpy.types.Operator) :
     bl_idname = "add_mesh.geometry_node_mesh"
     bl_label = "Geometry-Node Mesh"
     bl_description = "generates an empty mesh with a Geometry-Nodes modifier"
     bl_context = "objectmode"
-    bl_options = {"UNDO"}
+    bl_options = {"REGISTER", "UNDO"}
 
-    def execute(self, context) :
-        pos = context.scene.cursor.location.copy()
+    meshtype : bpy.props.EnumProperty \
+      (
+        default = NODE_MESH_DEFAULT.typename,
+        items = tuple
+          (
+            (item.typename, item.label, item.label)
+            for item in sorted(NODE_MESH.__members__.values(), key = lambda i : i.label)
+          ),
+        name = "Mesh Type"
+      )
+    position : bpy.props.FloatVectorProperty \
+      (
+        name = "position",
+        description = "where to position the books (initially at the 3D cursor)",
+      )
+
+    def draw(self, context) :
+        the_col = self.layout.column(align = True)
+        the_col.prop(self, "meshtype", text = "Mesh Type")
+    #end draw
+
+    def action_common(self, context, redoing) :
+        if redoing :
+            pos = Vector(tuple(self.position))
+        else :
+            pos = context.scene.cursor.location.copy()
+        #end if
         bpy.ops.object.select_all(action = "DESELECT")
         new_mesh_name = new_obj_name = "GeomNodeMesh"
         new_mesh = bpy.data.meshes.new(new_mesh_name)
@@ -114,7 +166,7 @@ class AddGeometryNodeMesh(bpy.types.Operator) :
         new_obj.matrix_basis = Matrix.Translation(pos)
         geom_mod = new_obj.modifiers.new("Geometry", "NODES")
         ctx = NodeContext(geom_mod.node_group, (0, 0), clear = True)
-        geom = ctx.node("GeometryNodeMeshCube", ctx.step_across(200))
+        geom = ctx.node(self.meshtype, ctx.step_across(200))
         output = ctx.node("NodeGroupOutput", ctx.step_across(100))
         ctx.link(geom.outputs[0], output.inputs[0])
         deselect_all(ctx.graph)
@@ -128,6 +180,16 @@ class AddGeometryNodeMesh(bpy.types.Operator) :
         return \
             status
     #end execute
+
+    def execute(self, context) :
+        return \
+            self.action_common(context, True)
+    #end execute
+
+    def invoke(self, context, event) :
+        return \
+            self.action_common(context, False)
+    #end invoke
 
 #end AddGeometryNodeMesh
 

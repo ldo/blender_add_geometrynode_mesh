@@ -1,7 +1,10 @@
 #+
 # Blender add-on to create a mesh object with no actual innate geometry:
 # instead, all its geometry is dynamically generated via a Geometry Nodes
-# modifier.
+# modifier. Requires Blender 2.93 (pre-release).
+#
+# Copyright 2021 by Lawrence D'Oliveiro <ldo@geek-central.gen.nz>. Licensed
+# under CC-BY-SA <http://creativecommons.org/licenses/by-sa/4.0/>.
 #-
 
 import sys

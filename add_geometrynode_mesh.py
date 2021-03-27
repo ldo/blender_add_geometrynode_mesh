@@ -19,7 +19,7 @@ bl_info = \
     {
         "name" : "Geometry-Node Mesh",
         "author" : "Lawrence D'Oliveiro <ldo@geek-central.gen.nz>",
-        "version" : (0, 2, 0),
+        "version" : (0, 2, 1),
         "blender" : (2, 93, 0),
         "location" : "Add > Mesh",
         "description" :
@@ -104,9 +104,9 @@ class NODE_MESH(enum.Enum) :
     CONE = ("Cone", "GeometryNodeMeshCone")
     CUBE = ("Cube", "GeometryNodeMeshCube")
     CYLINDER = ("Cylinder", "GeometryNodeMeshCylinder")
+    GRID = ("Grid/Plane", "GeometryNodeMeshGrid")
     ICO_SPHERE = ("Ico Sphere", "GeometryNodeMeshIcoSphere")
     LINE = ("Line", "GeometryNodeMeshLine")
-    PLANE = ("Plane", "GeometryNodeMeshPlane")
     UV_SPHERE = ("UV Sphere", "GeometryNodeMeshUVSphere")
 
     @property
